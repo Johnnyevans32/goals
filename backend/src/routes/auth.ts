@@ -37,9 +37,13 @@ router.post("/register", async (req: Request, res: Response) => {
     await userRepository.save(user);
 
     return ResponseService.json(res, 201, "User created successfully");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Registration error:", error);
-    return ResponseService.json(res, 500, "Registration failed");
+    return ResponseService.json(
+      res,
+      400,
+      error.message || "Registration failed"
+    );
   }
 });
 
@@ -68,9 +72,9 @@ router.post("/login", async (req: Request, res: Response) => {
       user,
       token,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Login error:", error);
-    return ResponseService.json(res, 500, "Login failed");
+    return ResponseService.json(res, 400, error.message || "Login failed");
   }
 });
 
@@ -84,9 +88,13 @@ router.get("/me", authenticateToken, async (req: Request, res: Response) => {
       "User profile retrieved successfully",
       user
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Get user error:", error);
-    return ResponseService.json(res, 500, "Failed to retrieve user profile");
+    return ResponseService.json(
+      res,
+      400,
+      error.message || "Failed to retrieve user profile"
+    );
   }
 });
 

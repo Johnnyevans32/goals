@@ -97,9 +97,13 @@ router.get(
         actions,
         metadata
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Get actions error:", error);
-      return ResponseService.json(res, 500, "Failed to retrieve actions");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to retrieve actions"
+      );
     }
   }
 );
@@ -137,9 +141,13 @@ router.post(
       return ResponseService.json(res, 201, "Action created successfully", {
         id: savedAction.id,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Create action error:", error);
-      return ResponseService.json(res, 500, "Failed to create action");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to create action"
+      );
     }
   }
 );
@@ -173,9 +181,13 @@ router.patch(
       return ResponseService.json(res, 200, "Action updated successfully", {
         id: updatedAction.id,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Update action error:", error);
-      return ResponseService.json(res, 500, "Failed to update action");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to update action"
+      );
     }
   }
 );
@@ -205,9 +217,13 @@ router.delete(
       await actionRepository.remove(action);
 
       return ResponseService.json(res, 200, "Action deleted successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Delete action error:", error);
-      return ResponseService.json(res, 500, "Failed to delete action");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to delete action"
+      );
     }
   }
 );
@@ -240,9 +256,13 @@ router.get(
         "Action retrieved successfully",
         action
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Get action error:", error);
-      return ResponseService.json(res, 500, "Failed to retrieve action");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to retrieve action"
+      );
     }
   }
 );

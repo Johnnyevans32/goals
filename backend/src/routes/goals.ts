@@ -86,9 +86,13 @@ router.get(
         goals,
         metadata
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Get goals error:", error);
-      return ResponseService.json(res, 500, "Failed to retrieve goals");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to retrieve goals"
+      );
     }
   }
 );
@@ -119,9 +123,13 @@ router.get("/:id", authenticateToken, async (req: Request, res: Response) => {
     await goalRepository.save(goal);
 
     return ResponseService.json(res, 200, "Goal retrieved successfully", goal);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Get goal error:", error);
-    return ResponseService.json(res, 500, "Failed to retrieve goal");
+    return ResponseService.json(
+      res,
+      400,
+      error.message || "Failed to retrieve goal"
+    );
   }
 });
 
@@ -141,9 +149,13 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
     return ResponseService.json(res, 201, "Goal created successfully", {
       id: savedGoal.id,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create goal error:", error);
-    return ResponseService.json(res, 500, "Failed to create goal");
+    return ResponseService.json(
+      res,
+      400,
+      error.message || "Failed to create goal"
+    );
   }
 });
 
@@ -172,9 +184,13 @@ router.put("/:id", authenticateToken, async (req: Request, res: Response) => {
     return ResponseService.json(res, 200, "Goal updated successfully", {
       id: updatedGoal.id,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Update goal error:", error);
-    return ResponseService.json(res, 500, "Failed to update goal");
+    return ResponseService.json(
+      res,
+      400,
+      error.message || "Failed to update goal"
+    );
   }
 });
 
@@ -201,9 +217,13 @@ router.delete(
       await goalRepository.remove(goal);
 
       return ResponseService.json(res, 200, "Goal deleted successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Delete goal error:", error);
-      return ResponseService.json(res, 500, "Failed to delete goal");
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to delete goal"
+      );
     }
   }
 );
@@ -256,7 +276,11 @@ router.post(
       );
     } catch (error: any) {
       console.error("Create goal update error:", error);
-      return ResponseService.json(res, 400, error.message);
+      return ResponseService.json(
+        res,
+        400,
+        error.message || "Failed to create goal update"
+      );
     }
   }
 );
@@ -268,7 +292,6 @@ router.get(
     try {
       const user = req.user!;
 
-      // Get goal statistics
       const goalStats = await goalRepository
         .createQueryBuilder("goal")
         .select("COUNT(*)", "total_count")
@@ -293,7 +316,6 @@ router.get(
         })
         .getRawOne();
 
-      // Get action statistics
       const actionStats = await actionRepository
         .createQueryBuilder("action")
         .select("COUNT(*)", "total_count")
@@ -336,12 +358,12 @@ router.get(
         "Dashboard stats retrieved successfully",
         stats
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Get dashboard stats error:", error);
       return ResponseService.json(
         res,
-        500,
-        "Failed to retrieve dashboard stats"
+        400,
+        error.message || "Failed to retrieve dashboard stats"
       );
     }
   }

@@ -58,12 +58,12 @@ router.post(
         "Action suggestions generated successfully",
         suggestions
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Suggest actions error:", error);
       return ResponseService.json(
         res,
-        500,
-        "Failed to generate action suggestions"
+        400,
+        error.message || "Failed to generate action suggestions"
       );
     }
   }
@@ -120,12 +120,12 @@ router.post(
         "Check-in summary generated successfully",
         summary
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Summarize check-in error:", error);
       return ResponseService.json(
         res,
-        500,
-        "Failed to generate check-in summary"
+        400,
+        error.message || "Failed to generate check-in summary"
       );
     }
   }
