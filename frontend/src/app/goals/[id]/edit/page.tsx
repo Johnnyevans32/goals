@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
 import { ArrowLeft, Save, X } from "lucide-react";
@@ -34,6 +35,7 @@ export default function EditGoalPage() {
     target_value: 0,
     due_date: "",
   });
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -53,6 +55,9 @@ export default function EditGoalPage() {
           target_value: goalData.target_value,
           due_date: goalData.due_date ? goalData.due_date.split("T")[0] : "",
         });
+        if (goalData.due_date) {
+          setSelectedDueDate(new Date(goalData.due_date));
+        }
       }
     },
     onError: (error) => {
@@ -229,11 +234,16 @@ export default function EditGoalPage() {
             {/* Due Date */}
             <div className="space-y-2">
               <Label htmlFor="due_date">Due Date</Label>
-              <Input
-                id="due_date"
-                type="date"
-                value={formData.due_date}
-                onChange={(e) => handleInputChange("due_date", e.target.value)}
+              <DatePicker
+                date={selectedDueDate}
+                onSelect={(date) => {
+                  setSelectedDueDate(date);
+                  setFormData({ 
+                    ...formData, 
+                    due_date: date ? date.toISOString().split('T')[0] : '' 
+                  });
+                }}
+                placeholder="Select due date"
                 className="w-full"
               />
             </div>

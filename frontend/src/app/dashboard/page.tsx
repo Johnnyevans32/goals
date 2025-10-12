@@ -44,6 +44,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import apiClient from "@/lib/api";
 import {
   Goal,
@@ -77,6 +78,7 @@ export default function DashboardPage() {
     unit: "",
     due_date: "",
   });
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
 
   const {
@@ -297,13 +299,16 @@ export default function DashboardPage() {
                         <Label htmlFor="due_date" className="text-right">
                           Due Date
                         </Label>
-                        <Input
-                          id="due_date"
-                          type="date"
-                          value={newGoal.due_date}
-                          onChange={(e) =>
-                            setNewGoal({ ...newGoal, due_date: e.target.value })
-                          }
+                        <DatePicker
+                          date={selectedDueDate}
+                          onSelect={(date) => {
+                            setSelectedDueDate(date);
+                            setNewGoal({ 
+                              ...newGoal, 
+                              due_date: date ? date.toISOString().split('T')[0] : '' 
+                            });
+                          }}
+                          placeholder="Select due date"
                           className="col-span-3"
                         />
                       </div>
@@ -322,6 +327,7 @@ export default function DashboardPage() {
                             unit: "",
                             due_date: "",
                           });
+                          setSelectedDueDate(undefined);
                         }}
                       >
                         Cancel
@@ -360,6 +366,7 @@ export default function DashboardPage() {
                                 unit: "",
                                 due_date: "",
                               });
+                              setSelectedDueDate(undefined);
                               refetchStats();
                               refetchGoals();
                             } else {

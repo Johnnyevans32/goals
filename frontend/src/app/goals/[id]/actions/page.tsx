@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Dialog,
@@ -76,6 +77,7 @@ export default function ActionsPage() {
     effort: EffortLevel.MEDIUM,
     due_date: "",
   });
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(undefined);
   const [aiSuggestions, setAISuggestions] = useState<AIActionSuggestion[]>([]);
   const [isAISuggestionsOpen, setIsAISuggestionsOpen] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
@@ -200,6 +202,7 @@ export default function ActionsPage() {
           effort: EffortLevel.MEDIUM,
           due_date: "",
         });
+        setSelectedDueDate(undefined);
         fetchActions();
       } else {
         toast.error("Failed to create action");
@@ -242,6 +245,7 @@ export default function ActionsPage() {
       effort: suggestion.effort as EffortLevel,
       due_date: "",
     });
+    setSelectedDueDate(undefined);
     setIsAISuggestionsOpen(false);
     setIsCreateDialogOpen(true);
   };
@@ -441,16 +445,16 @@ export default function ActionsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="action-due-date">Due Date</Label>
-                  <Input
-                    id="action-due-date"
-                    type="date"
-                    value={newAction.due_date}
-                    onChange={(e) =>
+                  <DatePicker
+                    date={selectedDueDate}
+                    onSelect={(date) => {
+                      setSelectedDueDate(date);
                       setNewAction((prev) => ({
                         ...prev,
-                        due_date: e.target.value,
-                      }))
-                    }
+                        due_date: date ? date.toISOString().split('T')[0] : '',
+                      }));
+                    }}
+                    placeholder="Select due date"
                   />
                 </div>
               </div>
