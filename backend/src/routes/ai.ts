@@ -58,15 +58,15 @@ router.post(
           new_value: update.new_value,
           previous_value: update.previous_value,
           notes: update.notes || "",
-          created_at: update.created_at,
+          created_at: new Date(update.created_at),
         })),
         currentActions.map((action) => ({
           title: action.title,
           description: action.description || "",
           status: action.status,
           effort: action.effort,
-          created_at: action.created_at,
-          due_date: action.due_date,
+          created_at: new Date(action.created_at),
+          due_date: new Date(action.due_date),
         }))
       );
 
@@ -132,15 +132,15 @@ router.post(
           new_value: update.new_value,
           previous_value: update.previous_value,
           notes: update.notes || "",
-          created_at: update.created_at,
+          created_at: new Date(update.created_at),
         })),
         actions.map((action) => ({
           title: action.title,
           description: action.description || "",
           status: action.status,
           effort: action.effort,
-          created_at: action.created_at,
-          due_date: action.due_date,
+          created_at: new Date(action.created_at),
+          due_date: new Date(action.due_date),
         }))
       );
 
