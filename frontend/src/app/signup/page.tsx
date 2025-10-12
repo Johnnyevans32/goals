@@ -39,8 +39,8 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password.length < 6) {
-      const errorMessage = "Password must be at least 6 characters long";
+    if (password.length < 8) {
+      const errorMessage = "Password must be at least 8 characters long";
       setError(errorMessage);
       toast.error(errorMessage);
       setIsLoading(false);
@@ -60,7 +60,9 @@ export default function SignUpPage() {
       router.replace("/login");
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Registration failed. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
