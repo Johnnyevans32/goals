@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import { appConfig } from "../config/app";
 import {
+  ActionStatus,
   AIActionSuggestion,
   AICheckInSummary,
   EffortLevel,
@@ -57,6 +58,14 @@ export class OpenRouterService {
       previous_value: number;
       notes: string;
       created_at: Date;
+    }>,
+    currentActions: Array<{
+      title: string;
+      effort: EffortLevel;
+      created_at: Date;
+      description: string;
+      status: ActionStatus;
+      due_date: Date;
     }>
   ): Promise<AIActionSuggestion[]> {
     try {
@@ -64,9 +73,10 @@ export class OpenRouterService {
 
 GUIDELINES:
 - Provide 3-5 specific, actionable suggestions
-- Consider the current progress and recent updates
-- Be encouraging but realistic
-- Focus on concrete steps the user can take
+- Analyze current progress, recent updates, and existing actions
+- Consider what's already in progress vs what new actions are needed
+- Be encouraging but realistic about timeline and effort
+- Focus on concrete steps that complement existing actions
 - Return suggestions as a JSON object following the provided JSON schema strictly
 
 Each suggestion must include:
@@ -74,21 +84,56 @@ Each suggestion must include:
 - rationale: A short explanation of why this step helps
 - effort: One of "S", "M", "L" representing small, medium, large effort`;
 
-      const userPrompt = `Goal: ${goalTitle}
+      const today = new Date().toDateString();
+      const userPrompt = `Goal Analysis for ${today}
+
+Goal: ${goalTitle}
 Description: ${goalDescription}
 Target: ${targetValue} ${unit}
 Current Progress: ${currentValue} ${unit}
-Progress Percentage: ${Math.round((currentValue / targetValue) * 100)} ${unit}
+Progress Percentage: ${Math.round((currentValue / targetValue) * 100)}%
 
 Recent Updates:
-${recentUpdates
-  .map(
-    (update) =>
-      `- ${update.created_at.toDateString()}: ${update.previous_value} → ${
-        update.new_value
-      } ${unit} ${update.notes ? ` (${update.notes})` : ""}`
-  )
-  .join("\n")}
+${
+  recentUpdates.length > 0
+    ? recentUpdates
+        .slice(0, 5)
+        .map(
+          (update) =>
+            `- ${update.created_at.toDateString()}: ${
+              update.previous_value
+            } → ${update.new_value} ${unit} ${
+              update.notes ? ` (${update.notes})` : ""
+            }`
+        )
+        .join("\n")
+    : "No recent updates available."
+}
+
+Current Actions (as of ${today}):
+${
+  currentActions.length > 0
+    ? currentActions
+        .filter((action) => action.status !== ActionStatus.DONE)
+        .slice(0, 5)
+        .map((action) => {
+          const daysUntilDue = Math.ceil(
+            (action.due_date.getTime() - new Date().getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
+          const dueStatus =
+            daysUntilDue < 0
+              ? `OVERDUE by ${Math.abs(daysUntilDue)} days`
+              : daysUntilDue === 0
+              ? "Due today"
+              : daysUntilDue <= 3
+              ? `Due in ${daysUntilDue} days`
+              : `Due: ${action.due_date.toDateString()}`;
+          return `- [${action.status}] ${action.title} (${action.effort} effort)\n  ${dueStatus}\n  ${action.description}`;
+        })
+        .join("\n\n")
+    : "No current actions assigned."
+}
 
 Please provide specific action suggestions to help achieve this goal as per the JSON schema.`;
 
@@ -146,33 +191,49 @@ Please provide specific action suggestions to help achieve this goal as per the 
     targetValue: number,
     currentValue: number,
     unit: string,
-    lastUpdate?: {
+    updates?: {
       new_value: number;
       previous_value: number;
       notes: string;
       created_at: Date;
-    }
+    }[],
+    currentActions?: {
+      title: string;
+      effort: EffortLevel;
+      created_at: Date;
+      description: string;
+      status: ActionStatus;
+      due_date: Date;
+    }[]
   ): Promise<AICheckInSummary> {
     try {
+      const lastUpdate = updates?.[0];
+
       const systemPrompt = `You are an expert goal tracking analyst. Your role is to provide insightful, encouraging summaries of goal progress based on recent check-ins.
 
 GUIDELINES:
-- Analyze the progress made since the last update
+- Analyze progress trends from multiple recent updates
 - Highlight achievements and positive momentum
+- Assess action completion rates and upcoming deadlines
 - Provide context about the overall goal progress
-- Be encouraging and motivational
+- Be encouraging and motivational while being realistic
 - Keep the summary concise but meaningful
-- Focus on the journey and progress, not just numbers
+- Focus on both quantitative progress and qualitative effort
+- Consider action status when assessing risk and confidence
 
 Return a JSON object strictly following the provided JSON schema.`;
 
+      const today = new Date();
+      const todayString = today.toDateString();
       const progressPercentage = Math.round((currentValue / targetValue) * 100);
       const delta = lastUpdate ? currentValue - lastUpdate.previous_value : 0;
 
-      const userPrompt = `Goal: ${goalTitle}
+      const userPrompt = `Goal Check-in Summary for ${todayString}
+
+Goal: ${goalTitle}
 Description: ${goalDescription}
 Target: ${targetValue} ${unit}
-Current Progress: ${currentValue} ${unit} (${progressPercentage} ${unit})
+Current Progress: ${currentValue} ${unit} (${progressPercentage}%)
 
 ${
   lastUpdate
@@ -184,6 +245,61 @@ ${
         lastUpdate.notes || "No notes provided"
       }`
     : "This is the initial check-in for this goal."
+}
+
+Recent Progress History:
+${
+  updates && updates.length > 1
+    ? updates
+        .slice(1, 6)
+        .map(
+          (update, index) =>
+            `- ${update.created_at.toDateString()}: ${
+              update.previous_value
+            } → ${update.new_value} ${unit} ${
+              update.notes ? `(${update.notes})` : ""
+            }`
+        )
+        .join("\n")
+    : "No additional recent updates."
+}
+
+Current Action Status (as of ${todayString}):
+${
+  currentActions && currentActions.length > 0
+    ? `Total Actions: ${currentActions.length}\n` +
+      `- Completed: ${
+        currentActions.filter((a) => a.status === ActionStatus.DONE).length
+      }\n` +
+      `- In Progress: ${
+        currentActions.filter((a) => a.status === ActionStatus.IN_PROGRESS)
+          .length
+      }\n` +
+      `- Not Started: ${
+        currentActions.filter((a) => a.status === ActionStatus.TODO).length
+      }\n\n` +
+      `Upcoming Actions:\n` +
+      currentActions
+        .filter((action) => action.status !== ActionStatus.DONE)
+        .sort((a, b) => a.due_date.getTime() - b.due_date.getTime())
+        .slice(0, 3)
+        .map((action) => {
+          const daysUntilDue = Math.ceil(
+            (action.due_date.getTime() - today.getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
+          const dueStatus =
+            daysUntilDue < 0
+              ? `OVERDUE by ${Math.abs(daysUntilDue)} days`
+              : daysUntilDue === 0
+              ? "Due today"
+              : daysUntilDue <= 3
+              ? `Due in ${daysUntilDue} days`
+              : `Due: ${action.due_date.toDateString()}`;
+          return `- ${action.title} (${dueStatus})`;
+        })
+        .join("\n")
+    : "No actions currently assigned to this goal."
 }
 
 Please provide an encouraging summary of the progress made.`;

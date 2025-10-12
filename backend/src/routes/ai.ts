@@ -4,12 +4,15 @@ import { authenticateToken } from "../middleware/auth";
 
 import { Goal as GoalEntity } from "../entities/Goal";
 import { GoalUpdate as GoalUpdateEntity } from "../entities/GoalUpdate";
+
 import { OpenRouterService } from "../services/openrouter.service";
 import { ResponseService } from "../utils/response";
+import { Action as ActionEntity } from "../entities/Action";
 
 const router = express.Router();
 const openRouterService = new OpenRouterService();
 const goalUpdateRepository = AppDataSource.getRepository(GoalUpdateEntity);
+const actionRepository = AppDataSource.getRepository(ActionEntity);
 
 router.post(
   "/suggest-actions",
@@ -32,11 +35,18 @@ router.post(
         return ResponseService.json(res, 404, "Goal not found");
       }
 
-      const recentUpdates = await goalUpdateRepository.find({
-        where: { goal: { id: goalId } },
-        order: { created_at: "DESC" },
-        take: 3,
-      });
+      const [recentUpdates, currentActions] = await Promise.all([
+        goalUpdateRepository.find({
+          where: { goal: { id: goalId } },
+          order: { created_at: "DESC" },
+          take: 3,
+        }),
+        actionRepository.find({
+          where: { goal: { id: goalId } },
+          order: { created_at: "DESC" },
+          take: 3,
+        }),
+      ]);
 
       const suggestions = await openRouterService.generateActionSuggestions(
         goal.title,
@@ -49,6 +59,14 @@ router.post(
           previous_value: update.previous_value,
           notes: update.notes || "",
           created_at: update.created_at,
+        })),
+        currentActions.map((action) => ({
+          title: action.title,
+          description: action.description || "",
+          status: action.status,
+          effort: action.effort,
+          created_at: action.created_at,
+          due_date: action.due_date,
         }))
       );
 
@@ -93,10 +111,16 @@ router.post(
         return ResponseService.json(res, 404, "Goal not found");
       }
 
-      const lastUpdate = await goalUpdateRepository.findOne({
-        where: { goal: { id: goalId } },
-        order: { created_at: "DESC" },
-      });
+      const [updates, actions] = await Promise.all([
+        goalUpdateRepository.find({
+          where: { goal: { id: goalId } },
+          order: { created_at: "DESC" },
+        }),
+        actionRepository.find({
+          where: { goal: { id: goalId } },
+          order: { created_at: "DESC" },
+        }),
+      ]);
 
       const summary = await openRouterService.generateCheckinSummary(
         goal.title,
@@ -104,14 +128,20 @@ router.post(
         goal.target_value,
         goal.current_value,
         goal.unit || "",
-        lastUpdate
-          ? {
-              new_value: lastUpdate.new_value,
-              previous_value: lastUpdate.previous_value,
-              notes: lastUpdate.notes || "",
-              created_at: lastUpdate.created_at,
-            }
-          : undefined
+        updates.map((update) => ({
+          new_value: update.new_value,
+          previous_value: update.previous_value,
+          notes: update.notes || "",
+          created_at: update.created_at,
+        })),
+        actions.map((action) => ({
+          title: action.title,
+          description: action.description || "",
+          status: action.status,
+          effort: action.effort,
+          created_at: action.created_at,
+          due_date: action.due_date,
+        }))
       );
 
       return ResponseService.json(
