@@ -28,8 +28,8 @@ an app for managing personal and professional goals with AI-powered insights and
 
 ### AI-Powered Features
 
-2. **Progress Predictions**: AI models predict goal completion likelihood based on historical data
-3. **Action Suggestions**: Intelligent task breakdown and scheduling recommendations
+**Progress Predictions**: AI models predict goal completion likelihood based on historical data
+**Action Suggestions**: Intelligent task breakdown and scheduling recommendations
 
 ## 🔄 CI/CD Pipeline
 
