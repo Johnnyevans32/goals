@@ -1,6 +1,7 @@
 import express, { NextFunction, Response, Request } from "express";
 import { AppDataSource } from "../config/datasource";
 import { Goal } from "../entities/Goal";
+import { Action } from "../entities/Action";
 import { ActionStatus, GoalStatus } from "../types";
 import { GoalUpdate } from "../entities/GoalUpdate";
 import { authenticateToken } from "../middleware/auth";
@@ -14,6 +15,7 @@ import { computeGoalStatus } from "../utils/drift";
 
 const router = express.Router();
 const goalRepository = AppDataSource.getRepository(Goal);
+const actionRepository = AppDataSource.getRepository(Action);
 const goalUpdateRepository = AppDataSource.getRepository(GoalUpdate);
 
 router.get(
@@ -266,81 +268,56 @@ router.get(
     try {
       const user = req.user!;
 
-      const rawResults = await goalRepository
+      // Get goal statistics
+      const goalStats = await goalRepository
         .createQueryBuilder("goal")
-        .select([
-          "stats_type",
-          "total_count",
-          "on_track_count",
-          "off_track_count",
-          "at_risk_count",
-          "todo_count",
-          "done_count",
-          "in_progress_count",
-        ])
-        .from((qb: any) => {
-          const goalSubQuery = qb
-            .subQuery()
-            .select("'goals'", "stats_type")
-            .addSelect("COUNT(*)", "total_count")
-            .addSelect(
-              "SUM(CASE WHEN status = :onTrack THEN 1 ELSE 0 END)",
-              "on_track_count"
-            )
-            .addSelect(
-              "SUM(CASE WHEN status = :offTrack THEN 1 ELSE 0 END)",
-              "off_track_count"
-            )
-            .addSelect(
-              "SUM(CASE WHEN status = :atRisk THEN 1 ELSE 0 END)",
-              "at_risk_count"
-            )
-            .addSelect("0", "todo_count")
-            .addSelect("0", "done_count")
-            .addSelect("0", "in_progress_count")
-            .from("goals", "g")
-            .where("g.user_id = :userId")
-            .getQuery();
-
-          const actionSubQuery = qb
-            .subQuery()
-            .select("'actions'", "stats_type")
-            .addSelect("COUNT(*)", "total_count")
-            .addSelect("0", "on_track_count")
-            .addSelect("0", "off_track_count")
-            .addSelect("0", "at_risk_count")
-            .addSelect(
-              "SUM(CASE WHEN a.status = :todo THEN 1 ELSE 0 END)",
-              "todo_count"
-            )
-            .addSelect(
-              "SUM(CASE WHEN a.status = :done THEN 1 ELSE 0 END)",
-              "done_count"
-            )
-            .addSelect(
-              "SUM(CASE WHEN a.status = :inProgress THEN 1 ELSE 0 END)",
-              "in_progress_count"
-            )
-            .from("actions", "a")
-            .innerJoin("goals", "g", "a.goal_id = g.id")
-            .where("g.user_id = :userId")
-            .getQuery();
-
-          return `(${goalSubQuery}) UNION ALL (${actionSubQuery})`;
-        }, "combined_stats")
+        .select("COUNT(*)", "total_count")
+        .addSelect(
+          "SUM(CASE WHEN goal.status = :onTrack THEN 1 ELSE 0 END)",
+          "on_track_count"
+        )
+        .addSelect(
+          "SUM(CASE WHEN goal.status = :offTrack THEN 1 ELSE 0 END)",
+          "off_track_count"
+        )
+        .addSelect(
+          "SUM(CASE WHEN goal.status = :atRisk THEN 1 ELSE 0 END)",
+          "at_risk_count"
+        )
+        .where("goal.user_id = :userId")
         .setParameters({
           userId: user.id,
           onTrack: GoalStatus.ON_TRACK,
           offTrack: GoalStatus.OFF_TRACK,
           atRisk: GoalStatus.AT_RISK,
+        })
+        .getRawOne();
+
+      // Get action statistics
+      const actionStats = await actionRepository
+        .createQueryBuilder("action")
+        .select("COUNT(*)", "total_count")
+        .addSelect(
+          "SUM(CASE WHEN action.status = :todo THEN 1 ELSE 0 END)",
+          "todo_count"
+        )
+        .addSelect(
+          "SUM(CASE WHEN action.status = :done THEN 1 ELSE 0 END)",
+          "done_count"
+        )
+        .addSelect(
+          "SUM(CASE WHEN action.status = :inProgress THEN 1 ELSE 0 END)",
+          "in_progress_count"
+        )
+        .innerJoin("action.goal", "goal")
+        .where("goal.user_id = :userId")
+        .setParameters({
+          userId: user.id,
           todo: ActionStatus.TODO,
           done: ActionStatus.DONE,
           inProgress: ActionStatus.IN_PROGRESS,
         })
-        .getRawMany();
-
-      const goalStats = rawResults.find((r) => r.stats_type === "goals");
-      const actionStats = rawResults.find((r) => r.stats_type === "actions");
+        .getRawOne();
 
       const stats = {
         totalGoals: parseInt(goalStats?.total_count) || 0,
