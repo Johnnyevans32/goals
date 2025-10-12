@@ -55,6 +55,7 @@ import {
   Search,
   Filter,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 
 export default function ActionsPage() {
@@ -272,6 +273,31 @@ export default function ActionsPage() {
     } catch (error) {
       toast.error("Failed to update action status");
       console.error("Update action error:", error);
+    }
+  };
+
+  const handleDeleteAction = async (actionId: number) => {
+    if (
+      confirm(
+        "Are you sure you want to delete this action? This action cannot be undone."
+      )
+    ) {
+      try {
+        const response = await apiClient.actions.delete(
+          Number(goalId),
+          actionId
+        );
+
+        if (response.message) {
+          toast.success("Action deleted successfully!");
+          fetchActions();
+        } else {
+          toast.error("Failed to delete action");
+        }
+      } catch (error) {
+        toast.error("Failed to delete action");
+        console.error("Delete action error:", error);
+      }
     }
   };
 
@@ -702,6 +728,14 @@ export default function ActionsPage() {
                         Reopen
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteAction(action.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardContent>
