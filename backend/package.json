@@ -43,5 +43,8 @@
     "typescript": "^5.9.3",
     "zod": "^3.22.4"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "_moduleAliases": {
+    "@": "./dist"
+  }
 }
