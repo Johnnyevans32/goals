@@ -1,0 +1,69 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ master, dev ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ master, dev ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  test:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'yarn'
+        cache-dependency-path: frontend/yarn.lock
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: yarn install --frozen-lockfile
+
+    - name: Run ESLint
+      working-directory: ./frontend
+      run: yarn lint
+
+    - name: TypeScript type check
+      working-directory: ./frontend
+      run: yarn type-check
+
+    - name: Build application
+      working-directory: ./frontend
+      run: yarn build
+      env:
+        NODE_ENV: production
+
+    - name: Verify build artifacts
+      working-directory: ./frontend
+      run: |
+        echo "Verifying build artifacts..."
+        if [ -d ".next" ]; then
+          echo "✅ Build artifacts found"
+          echo "Build size: $(du -sh .next | cut -f1)"
+        else
+          echo "❌ Build artifacts not found"
+          exit 1
+        fi
+
+    - name: Test build output
+      working-directory: ./frontend
+      run: |
+        echo "Testing build output integrity..."
+        # Check if critical files exist
+        test -f .next/BUILD_ID || (echo "❌ BUILD_ID missing" && exit 1)
+        test -d .next/static || (echo "❌ static directory missing" && exit 1)
+        test -d .next/server || (echo "❌ server directory missing" && exit 1)
+        echo "✅ Build output integrity verified"
