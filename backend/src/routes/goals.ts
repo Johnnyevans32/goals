@@ -31,6 +31,14 @@ router.get(
           order: { created_at: "DESC" },
         });
 
+        goals.forEach((goal) => {
+          goal.status = computeGoalStatus(
+            goal.current_value,
+            goal.target_value,
+            goal.due_date
+          );
+        });
+
         return ResponseService.json(
           res,
           200,
@@ -48,6 +56,14 @@ router.get(
         order: { created_at: "DESC" },
         skip: (pageNum - 1) * perPage,
         take: perPage,
+      });
+
+      goals.forEach((goal) => {
+        goal.status = computeGoalStatus(
+          goal.current_value,
+          goal.target_value,
+          goal.due_date
+        );
       });
 
       const total_pages = Math.ceil(total / perPage);
@@ -92,6 +108,13 @@ router.get("/:id", authenticateToken, async (req: Request, res: Response) => {
     if (!goal) {
       return ResponseService.json(res, 404, "Goal not found");
     }
+
+    goal.status = computeGoalStatus(
+      goal.current_value,
+      goal.target_value,
+      goal.due_date
+    );
+    await goalRepository.save(goal);
 
     return ResponseService.json(res, 200, "Goal retrieved successfully", goal);
   } catch (error) {
