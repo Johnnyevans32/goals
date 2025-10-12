@@ -77,7 +77,9 @@ export default function ActionsPage() {
     effort: EffortLevel.MEDIUM,
     due_date: "",
   });
-  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(undefined);
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(
+    undefined
+  );
   const [aiSuggestions, setAISuggestions] = useState<AIActionSuggestion[]>([]);
   const [isAISuggestionsOpen, setIsAISuggestionsOpen] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
@@ -451,7 +453,7 @@ export default function ActionsPage() {
                       setSelectedDueDate(date);
                       setNewAction((prev) => ({
                         ...prev,
-                        due_date: date ? date.toISOString().split('T')[0] : '',
+                        due_date: date ? date.toISOString().split("T")[0] : "",
                       }));
                     }}
                     placeholder="Select due date"
@@ -649,7 +651,7 @@ export default function ActionsPage() {
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          Due: {new Date(action.due_date).toLocaleDateString()}
+                          Due: {new Date(action.due_date).toLocaleString()}
                         </span>
                       </div>
                     )}

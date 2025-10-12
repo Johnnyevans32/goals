@@ -78,7 +78,9 @@ export default function DashboardPage() {
     unit: "",
     due_date: "",
   });
-  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(undefined);
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(
+    undefined
+  );
   const [isCreating, setIsCreating] = useState(false);
 
   const {
@@ -303,9 +305,11 @@ export default function DashboardPage() {
                           date={selectedDueDate}
                           onSelect={(date) => {
                             setSelectedDueDate(date);
-                            setNewGoal({ 
-                              ...newGoal, 
-                              due_date: date ? date.toISOString().split('T')[0] : '' 
+                            setNewGoal({
+                              ...newGoal,
+                              due_date: date
+                                ? date.toISOString().split("T")[0]
+                                : "",
                             });
                           }}
                           placeholder="Select due date"
@@ -664,9 +668,7 @@ export default function DashboardPage() {
                                     <Clock className="h-4 w-4" />
                                     <span>
                                       Due:{" "}
-                                      {new Date(
-                                        goal.due_date
-                                      ).toLocaleDateString()}
+                                      {new Date(goal.due_date).toLocaleString()}
                                     </span>
                                   </div>
                                 )}

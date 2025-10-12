@@ -558,9 +558,7 @@ export default function GoalDetailPage() {
               {goal.due_date && (
                 <div className="flex items-center text-gray-600">
                   <Calendar className="h-4 w-4 mr-2" />
-                  <span>
-                    Due: {new Date(goal.due_date).toLocaleDateString()}
-                  </span>
+                  <span>Due: {new Date(goal.due_date).toLocaleString()}</span>
                 </div>
               )}
             </CardContent>
@@ -613,7 +611,7 @@ export default function GoalDetailPage() {
                         {action.due_date && (
                           <div className="flex items-center text-xs text-gray-500 mt-1">
                             <Calendar className="h-3 w-3 mr-1" />
-                            {new Date(action.due_date).toLocaleDateString()}
+                            {new Date(action.due_date).toLocaleString()}
                           </div>
                         )}
                       </div>
@@ -641,13 +639,13 @@ export default function GoalDetailPage() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Created</span>
                 <span className="text-sm font-medium">
-                  {new Date(goal.created_at).toLocaleDateString()}
+                  {new Date(goal.created_at).toLocaleString()}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Last Updated</span>
                 <span className="text-sm font-medium">
-                  {new Date(goal.updated_at).toLocaleDateString()}
+                  {new Date(goal.updated_at).toLocaleString()}
                 </span>
               </div>
               {goal.actions && (
@@ -693,9 +691,7 @@ export default function GoalDetailPage() {
                           {update.previous_value} → {update.new_value}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {new Date(
-                            update.created_at || ""
-                          ).toLocaleDateString()}
+                          {new Date(update.created_at || "").toLocaleString()}
                         </span>
                       </div>
                       {update.notes && (
