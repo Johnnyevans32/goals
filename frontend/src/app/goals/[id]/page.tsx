@@ -881,9 +881,9 @@ export default function GoalDetailPage() {
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={handleEditAICheckIn}>
+                {/* <Button variant="outline" onClick={handleEditAICheckIn}>
                   Edit
-                </Button>
+                </Button> */}
                 <Button onClick={() => setIsAICheckInOpen(false)}>Close</Button>
               </>
             )}
