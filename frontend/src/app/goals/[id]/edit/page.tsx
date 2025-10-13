@@ -35,7 +35,9 @@ export default function EditGoalPage() {
     target_value: 0,
     due_date: "",
   });
-  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(undefined);
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>(
+    undefined
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -139,11 +141,10 @@ export default function EditGoalPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Goal Not Found
+            Could not retrieve goal
           </h1>
           <p className="text-gray-600 mb-4">
-            The goal you're trying to edit doesn't exist or you don't have
-            permission to edit it.
+            An error occurred while retrieving the goal. Please try again.
           </p>
           <Button onClick={() => router.push("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -238,9 +239,9 @@ export default function EditGoalPage() {
                 date={selectedDueDate}
                 onSelect={(date) => {
                   setSelectedDueDate(date);
-                  setFormData({ 
-                    ...formData, 
-                    due_date: date ? date.toISOString().split('T')[0] : '' 
+                  setFormData({
+                    ...formData,
+                    due_date: date ? date.toISOString().split("T")[0] : "",
                   });
                 }}
                 placeholder="Select due date"

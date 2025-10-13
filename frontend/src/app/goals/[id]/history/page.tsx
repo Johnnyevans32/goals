@@ -83,7 +83,9 @@ export default function GoalHistoryPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "Goal not found"}</p>
+          <p className="text-red-600 mb-4">
+            {error || "Could not retrieve goal history"}
+          </p>
           <Button onClick={() => router.push("/dashboard")}>
             Back to Dashboard
           </Button>
